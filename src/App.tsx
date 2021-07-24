@@ -4,6 +4,9 @@ import Web3 from 'web3';
 import { Eth } from 'web3-eth';
 import { Transaction, TransactionReceipt } from 'web3-core';
 
+import NftMmorpgJson from './abi.json';
+import { Contract } from 'web3-eth-contract';
+
 export interface CustomGlobalThis {
   [any: string]: any;
 }
@@ -11,7 +14,9 @@ export interface CustomGlobalThis {
 const App: React.FC<any> = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [connectedAddress, setAddress] = useState<string | null>(null);
+
   const [ethInstance, SetEthInstance] = useState<Eth | null>(null);
+  const [myToken, setMyToken] = useState<Contract | null>(null);
 
   const [balance, setBalance] = useState<string>('');
   const [sentTransactions, setTransactions] = useState<TransactionReceipt[]>([]);
@@ -39,6 +44,8 @@ const App: React.FC<any> = () => {
         await (window as CustomGlobalThis).ethereum.request({
           method: 'eth_requestAccounts'
         });
+        const NftMmorpgToken = new web3.eth.Contract(NftMmorpgJson as any);
+        setMyToken(NftMmorpgToken);
         SetEthInstance(web3.eth);
         setIsConnected(true);
         setAddress((window as CustomGlobalThis).ethereum.selectedAddress);
@@ -102,6 +109,15 @@ const App: React.FC<any> = () => {
     }
   }
 
+  const callMint = async () => {
+    if (isConnected && myToken) {
+      // 0 ?
+      await myToken.methods.mint('TestNFT', 100, 100).call();
+
+      console.log(await myToken.methods.getCharacter(0).call());
+    }
+  }
+
   return (
     <div className="App" style={{ padding: 40 }}>
       {isConnected ?
@@ -112,6 +128,10 @@ const App: React.FC<any> = () => {
 
             <button onClick={send1ETH} style={{ marginTop: 20 }}>
               Send 1 ETH
+            </button>
+
+            <button onClick={callMint} style={{ marginTop: 20 }}>
+              Call mint
             </button>
 
             <h1>Last transactions</h1>
