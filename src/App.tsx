@@ -45,7 +45,7 @@ const App: React.FC<any> = () => {
           method: 'eth_requestAccounts'
         });
 
-        const networkId = await web3.eth.net.getId(); 
+        const networkId = await web3.eth.net.getId();
         const networkData = (NftMmorpgJson.networks as any)[networkId as any];
         if (networkData) {
           const NftMmorpgToken = new web3.eth.Contract(NftMmorpgJson.abi as any, networkData.address);
@@ -74,8 +74,6 @@ const App: React.FC<any> = () => {
   const retrieveTransactions = async () => {
     if (isConnected && ethInstance && connectedAddress) {
       const block = await ethInstance.getTransactionCount(connectedAddress);
-      console.log(block)
-
       const current: Transaction[] = [];
       for (let i = 25; i < +block; i++) {
         current.push(await ethInstance.getTransactionFromBlock(i, 0));
@@ -107,7 +105,10 @@ const App: React.FC<any> = () => {
           value: Web3.utils.toWei(Web3.utils.toBN(1), 'ether') // This means 1 ETH
         });
         const newTransactions = [...sentTransactions, hash];
-        setTransactions(newTransactions)
+        setTransactions(newTransactions);
+
+        // Reload
+        getBalance();
       } catch (e) {
         console.log(e);
         alert(e.message);
@@ -116,11 +117,18 @@ const App: React.FC<any> = () => {
   }
 
   const callMint = async () => {
-    if (isConnected && myToken) {
-      // 0 ?
-      // await myToken.methods.mint('TestNFT', 100, 100).call();
-      console.log(await myToken.methods.getCurrentId().call())
-      // console.log(await myToken.methods.getCharacter(10).call());
+    if (isConnected && myToken && connectedAddress) {
+      try {
+        // Optionally specify { from: address }
+        const hash = await myToken.methods.mint('TestNFT', 100, 100).send({ from: connectedAddress });
+        console.log('Mint hash: ', hash);
+
+
+        // Reload
+        getBalance();
+      } catch (e) {
+        alert(e.message);
+      }
     }
   }
 
@@ -131,6 +139,10 @@ const App: React.FC<any> = () => {
           <div>
             Address: {connectedAddress}<br></br>
             Balance: {balance}<br></br>
+
+            <div>
+              <h1>Characters</h1>
+            </div>
 
             <button onClick={send1ETH} style={{ marginTop: 20 }}>
               Send 1 ETH
