@@ -27,6 +27,10 @@ contract NftMmorpg is ERC721, Ownable {
         nextId++;
     }
 
+    function getCurrentId() public view returns (uint256) {
+        return nextId;
+    }
+
     function getCharacter(uint256 id) public view returns (Character memory) {
         return _characters[id];
     }

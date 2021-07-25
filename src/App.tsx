@@ -4,7 +4,7 @@ import Web3 from 'web3';
 import { Eth } from 'web3-eth';
 import { Transaction, TransactionReceipt } from 'web3-core';
 
-import NftMmorpgJson from './abi.json';
+import NftMmorpgJson from './contracts/NftMmorpg.json';
 import { Contract } from 'web3-eth-contract';
 
 export interface CustomGlobalThis {
@@ -44,8 +44,14 @@ const App: React.FC<any> = () => {
         await (window as CustomGlobalThis).ethereum.request({
           method: 'eth_requestAccounts'
         });
-        const NftMmorpgToken = new web3.eth.Contract(NftMmorpgJson as any);
-        setMyToken(NftMmorpgToken);
+
+        const networkId = await web3.eth.net.getId(); 
+        const networkData = (NftMmorpgJson.networks as any)[networkId as any];
+        if (networkData) {
+          const NftMmorpgToken = new web3.eth.Contract(NftMmorpgJson.abi as any, networkData.address);
+          setMyToken(NftMmorpgToken);
+        }
+
         SetEthInstance(web3.eth);
         setIsConnected(true);
         setAddress((window as CustomGlobalThis).ethereum.selectedAddress);
@@ -112,9 +118,9 @@ const App: React.FC<any> = () => {
   const callMint = async () => {
     if (isConnected && myToken) {
       // 0 ?
-      await myToken.methods.mint('TestNFT', 100, 100).call();
-
-      console.log(await myToken.methods.getCharacter(0).call());
+      // await myToken.methods.mint('TestNFT', 100, 100).call();
+      console.log(await myToken.methods.getCurrentId().call())
+      // console.log(await myToken.methods.getCharacter(10).call());
     }
   }
 
